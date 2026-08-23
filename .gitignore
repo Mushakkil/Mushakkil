@@ -19,5 +19,5 @@ lib64/
 .venv
 
 # Project specific
-Datasets/
-*.csv
+datasets/
+datasets_archive/

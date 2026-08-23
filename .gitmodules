@@ -1,0 +1,6 @@
+[submodule "tools/dataset-prep/shamela-extractor"]
+	path = tools/dataset-prep/shamela-extractor
+	url = https://github.com/Mushakkil/shamela-extractor
+[submodule "tools/dataset-prep/dataset-preparer"]
+	path = tools/dataset-prep/dataset-preparer
+	url = https://github.com/Mushakkil/tashkeela_dataset_preparer
