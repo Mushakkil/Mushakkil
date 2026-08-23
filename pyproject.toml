@@ -1,0 +1,18 @@
+[project]
+name = "mushakkil"
+version = "0.0.1"
+description = "Arabic diacritization system"
+readme = "README.md"
+authors = [
+    { name = "FARIS", email = "imp.hui1.ma@proton.me" }
+]
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "kagglehub>=1.0.2",
+    "keras>=3.12.4",
+    "pandas>=2.3.3",
+    "pyarabic>=0.6.15",
+    "regex>=2026.7.19",
+    "tensorflow>=2.21.0",
+    "transformers>=5.15.1",
+]
