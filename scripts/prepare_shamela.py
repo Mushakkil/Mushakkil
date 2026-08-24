@@ -1,4 +1,4 @@
-import os
+import shutil
 import sys
 from pathlib import Path
 import zipfile
@@ -52,37 +52,65 @@ def main() -> None:
 
 def download_archive() -> None:
 	"""
-	Download the archive as chucks
+	Download the archive as chucks.
+
+	Skips the download when the archive is already present. The download goes
+	to a .part file first so an interrupted run is never mistaken for a
+	complete archive on the next run.
 	"""
-	ARCHIVE_DIST.parent.mkdir(parents=True, exist_ok=True)
+	ARCHIVE_DIST.mkdir(parents=True, exist_ok=True)
+
+	if ARCHIVE_FILE.is_file() and ARCHIVE_FILE.stat().st_size > 0:
+		print(f"{ARCHIVE_FILE.name} already exists. Skipping download.")
+		return
+
+	partial_file = ARCHIVE_FILE.with_suffix(ARCHIVE_FILE.suffix + ".part")
 
 	with http.request("GET", DATASET_DUMP_URL, preload_content=False) as response:
-		with open(ARCHIVE_FILE, "wb") as f:
+		if response.status != 200:
+			raise RuntimeError(
+				f"Download failed with HTTP {response.status}: {DATASET_DUMP_URL}"
+			)
+
+		with open(partial_file, "wb") as f:
 			while True:
 				chunk = response.read(1024 * 1024)	# 1 MB
 				if not chunk:
 					break
 				f.write(chunk)
 
+	partial_file.replace(ARCHIVE_FILE)
+	print(f"Downloaded {ARCHIVE_FILE}")
+
 
 def unpack_archive() -> None:
-	OUTPUT_DIR = Path("datasets_archive")
-	OUTPUT_DIR.mkdir(exist_ok=True)
+	"""
+	Extract the archive into datasets_archive/, skipping members that are
+	already on disk so a re-run never clobbers an existing extraction.
+	"""
+	ARCHIVE_DIST.mkdir(parents=True, exist_ok=True)
 
-	archives = list(ARCHIVE_DIST.glob("*.zip"))
+	archives = sorted(ARCHIVE_DIST.glob("*.zip"))
 
 	if not archives:
 		raise FileNotFoundError(f"No .zip archive found in {ARCHIVE_DIST}")
 
-	dist = os.path.join(OUTPUT_DIR, "Shamela_dataset")
+	extracted = 0
+	skipped = 0
 
-	try:
-		with zipfile.ZipFile(archives[0]) as zipFile:
-			zipFile.extractall(OUTPUT_DIR)
-	except:
-		print("Error occured while extraction of the dataset archive")
+	with zipfile.ZipFile(archives[0]) as zipFile:
+		for member in zipFile.infolist():
+			if member.is_dir():
+				continue
 
-	return dist
+			if (ARCHIVE_DIST / member.filename).exists():
+				skipped += 1
+				continue
+
+			zipFile.extract(member, ARCHIVE_DIST)
+			extracted += 1
+
+	print(f"Extracted {extracted:,} files into {ARCHIVE_DIST} ({skipped:,} already present, skipped)")
 
 
 def build_jar() -> None:
@@ -138,8 +166,19 @@ def build_dataset() -> None:
 
 
 def cleanup() -> None:
-	os.rmdir(ARCHIVE_DIST / "Shamela")
-	return
+	"""
+	Drop the intermediate extractor output. It is a populated tree, so rmdir()
+	cannot remove it. The downloaded archive is kept so the pipeline can be
+	re-run without downloading again.
+	"""
+	intermediate = ARCHIVE_DIST / "Shamela"
+
+	if not intermediate.exists():
+		print(f"Nothing to clean up: {intermediate} does not exist.")
+		return
+
+	shutil.rmtree(intermediate)
+	print(f"Removed {intermediate}")
 
 if __name__ == "__main__":
 	main()
