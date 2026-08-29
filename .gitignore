@@ -21,3 +21,4 @@ lib64/
 # Project specific
 datasets/
 datasets_archive/
+.cache/
