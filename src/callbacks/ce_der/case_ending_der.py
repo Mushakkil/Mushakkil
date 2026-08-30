@@ -9,13 +9,11 @@ class CaseEndingDERCallback(Callback):
             callbacks=[
             CaseEndingDERCallback(
                 val_data=(x_val, y_val),
-                case_ending_mask=val_case_mask,
+                case_ending_mask=val_case_mask, @see src/util/build_case_ending_mask.py
                 pad_id=PAD_ID,
             ),
         ]
     )
-
-    
     """
     def __init__(self, val_data, case_ending_mask, pad_id):
         super().__init__()

@@ -11,11 +11,13 @@ diacritized sentence and the same sentence with its diacritics stripped
 the diacritization model.
 
 ## Setup Enviroment
+
 > [!CAUTION]
-> you need uv to run this project
+> you need uv to run this project. Refere to https://docs.astral.sh/uv/
 
 1. clone the project
 2. install dependecies:
+
 ```bash
 cd Mushakkil
 uv sync
@@ -26,13 +28,13 @@ uv sync
 The two data-preparation tools under `tools/dataset-prep/` are **git
 submodules**, not files in this repository:
 
-| Path | Upstream |
-| --- | --- |
-| `tools/dataset-prep/shamela-extractor` | https://github.com/Mushakkil/shamela-extractor |
-| `tools/dataset-prep/dataset-preparer` | https://github.com/Mushakkil/tashkeela_dataset_preparer |
+| Path                                   | Upstream                                                |
+| -------------------------------------- | ------------------------------------------------------- |
+| `tools/dataset-prep/shamela-extractor` | https://github.com/Mushakkil/shamela-extractor          |
+| `tools/dataset-prep/dataset-preparer`  | https://github.com/Mushakkil/tashkeela_dataset_preparer |
 
-A plain `git clone` leaves both directories empty and the Shamela pipeline will
-fail. Clone with them:
+***A plain `git clone` leaves both directories empty and the Shamela pipeline will
+fail. Clone with them:***
 
 ```bash
 git clone --recurse-submodules <repo-url>
@@ -50,9 +52,9 @@ Two scripts under `scripts/` build the datasets. Both write into `datasets/`,
 and `datasets/` and `datasets_archive/` are gitignored — the data is rebuilt
 locally, never committed.
 
-| Script | Source | Output |
-| --- | --- | --- |
-| `scripts/prepare_shamela.py` | The Shamela digital library database dump | `datasets/shamela/*.csv`, one CSV per book |
+| Script                                | Source                                         | Output                                       |
+| ------------------------------------- | ---------------------------------------------- | -------------------------------------------- |
+| `scripts/prepare_shamela.py`          | The Shamela digital library database dump      | `datasets/shamela/*.csv`, one CSV per book   |
 | `scripts/prepare_sadeed_tashkeela.py` | The `Sadeed_Tashkeela` dataset on Hugging Face | `datasets/Sadeed_Tashkeela/{train,test}.csv` |
 
 ### Sadeed Tashkeela
@@ -107,25 +109,3 @@ uv run python scripts/prepare_shamela.py
 The script takes no arguments. It is re-runnable: the download is skipped when
 the archive is already present, unpacking skips files already on disk, and the
 dataset preparer skips books whose CSV already exists.
-
-#### Test run on a single book
-
-`prepare_shamela.py` itself has no test mode, but the extractor it calls does.
-To exercise the Java extraction path on one book instead of the whole library,
-run the extractor directly after the archive is unpacked and the exporter is
-compiled:
-
-```bash
-# compile the exporter (quote the classpath so the shell does not expand it)
-javac -cp "tools/dataset-prep/shamela-extractor/lib/*" \
-      tools/dataset-prep/shamela-extractor/java/ShamelaIndexExporter.java
-
-# extract a single book
-uv run python tools/dataset-prep/shamela-extractor/extract_indices.py \
-      --shamela-path datasets_archive \
-      --output-path datasets_archive/Shamela \
-      --test-single-book
-```
-
-`--shamela-path` must point at a directory containing `database/store`, which
-is where the extractor looks for the Lucene index.
