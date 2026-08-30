@@ -1,0 +1,5 @@
+## EDA for both Sadeed_tashkeela and Shamela datasets after processing
+
+## Requirements 
+- Shamela datasets (Run scripts/prepare_shamela.py)
+- Sadeed_tashkeela datasets (Run scripts/prepare_sadeed_tashkeela.py)
