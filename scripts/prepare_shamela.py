@@ -171,7 +171,7 @@ def cleanup() -> None:
 	cannot remove it. The downloaded archive is kept so the pipeline can be
 	re-run without downloading again.
 	"""
-	intermediate = ARCHIVE_DIST / "Shamela"
+	intermediate = ARCHIVE_DIST
 
 	if not intermediate.exists():
 		print(f"Nothing to clean up: {intermediate} does not exist.")
