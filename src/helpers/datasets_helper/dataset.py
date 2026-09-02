@@ -97,7 +97,7 @@ class Dataset():
                 return {}
 
         if self.name == "sadeed_tashkeal":
-            return DATASET_REGISTRY[self.name]
+            return self.DATASET_REGISTRY[self.name]
 
         loaded_split = {}
         if not purge_cache:
@@ -227,7 +227,7 @@ class Dataset():
  
         * split_type is ignored when dataset is sadeed_tashkeal
         """
-        files = self.get_files_split(self, split=split, split_type=split_type)
+        files = self.get_files_split(split, split_type)
 
         if not files:
             raise ValueError("There were no avalable datasets")
@@ -241,6 +241,6 @@ class Dataset():
             **self.csv_kwargs,
         )
 
-        # Cache dataset and prefetch elements from the input dataset ahead of the time to
+        # prefetch elements from the input dataset ahead of the time to
         # address performane issues with long loading time, even longer training.
-        return ds.cache().prefetch(tf.data.AUTOTUNE)
+        return ds.prefetch(tf.data.AUTOTUNE)
