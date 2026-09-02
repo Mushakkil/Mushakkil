@@ -1,7 +1,6 @@
-from keras.metrics import Metric
 import tensorflow as tf
 
-class DiacriticErrorRate(Metric):
+class DiacriticErrorRate(tf.keras.metrics.Metric):
     """
     DER = (incorrectly predicted diacritic characters) / (total diacriticable characters)
     y_true: (batch, seq_len) integer class ids, padded with pad_id
