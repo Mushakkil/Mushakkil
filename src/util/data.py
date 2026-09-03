@@ -149,7 +149,7 @@ def preprocess_csv_batch(column_dict):
     return char_ids, diac_ids, weights, case_ending_mask
 
 
-def make_dataset(raw_csv_dataset, cache=False, prefetch=True):
+def make_dataset(raw_csv_dataset, cache=True, prefetch=True):
     """
     Returns 4-tuples: (char_ids, diac_ids, sample_weight, case_ending_mask).
 
@@ -203,3 +203,18 @@ def materialize_validation_set(test_ds_full):
     y_val = np.concatenate(diac_ids_batches, axis=0)
     case_ending_mask_bool = np.concatenate(mask_batches, axis=0).astype(bool)
     return x_val, y_val, case_ending_mask_bool
+
+def encode_text(text, max_len=MAX_LEN):
+    """
+    Encode undiacritized Arabic text exactly as expected by the model.
+    """
+    chars = list(text)[:max_len]
+
+    padded = np.full(max_len, PAD_TOKEN, dtype=object)
+    padded[:len(chars)] = chars
+
+    char_ids = CHAR_LOOKUP(
+        tf.constant(padded.reshape(1, -1), dtype=tf.string)
+    )
+
+    return char_ids

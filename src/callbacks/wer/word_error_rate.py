@@ -25,9 +25,11 @@ class WordErrorRateCallback(Callback):
         WER = 1/2 = 50%
 
     """
-    def __init__(self, val_data):
+    def __init__(self, val_data, space_id, pad_id):
         super().__init__()
         self.x_val, self.y_val = val_data
+        self.space_id = space_id
+        self.pad_id = pad_id
 
     def on_epoch_end(self, epoch, logs=None):
         pred_ids = self.model.predict(self.x_val, verbose=0).argmax(axis=-1)
@@ -36,9 +38,9 @@ class WordErrorRateCallback(Callback):
         for gold_seq, pred_seq in zip(self.y_val, pred_ids):
             gw, pw, gold_words, pred_words = [], [], [], []
             for g, p in zip(gold_seq, pred_seq):
-                if g == DIAC_PAD_ID:
+                if g == self.pad_id:
                     break
-                if g == DIAC_SPACE_ID:
+                if g == self.space_id:
                     gold_words.append(tuple(gw))
                     pred_words.append(tuple(pw))
                     gw, pw = [], []

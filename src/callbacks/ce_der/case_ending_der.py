@@ -13,21 +13,20 @@ class CaseEndingDERCallback(Callback):
         ]
     )
     """
-    def __init__(self, val_data):
+    def __init__(self, val_data, pad_id):
         super().__init__()
         self.x_val, self.y_val, self.case_ending_mask = val_data
+        self.pad_id = pad_id
 
     def on_epoch_end(self, epoch, logs=None):
         pred_ids = self.model.predict(self.x_val, verbose=0).argmax(axis=-1)
 
-        valid = (self.y_val != DIAC_PAD_ID)
+        valid = (self.y_val != self.pad_id)
         wrong = (pred_ids != self.y_val)
 
         case_mask = self.case_ending_mask & valid
         noncase_mask = (~self.case_ending_mask) & valid 
         der_case = wrong[case_mask].sum() / max(case_mask.sum(), 1)
-        der_noncase = wrong[noncase_mask].sum() / max(noncase_mask.sum(), 1)
 
         logs["val_der_case_ending"] = der_case
-        logs["val_der_non_case_ending"] = der_noncase
-        print(f" - val_der_case_ending: {der_case:.4f} - val_der_non_case_ending: {der_noncase:.4f}")
+        print(f" - val_der_case_ending: {der_case:.4f}")

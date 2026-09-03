@@ -43,12 +43,14 @@ class Dataset():
     def __init__(
         self, 
         name: str, 
-        test_frac: float=0.10, 
+        test_frac: float=0.10,
+        epochs: int=5,
         seed: int=132,
         **kwargs
     ):
         self.name = name
         self.test_frac = test_frac
+        self.epochs = epochs
         self.csv_kwargs = kwargs
         self.seed = seed
                 
@@ -212,7 +214,7 @@ class Dataset():
     def load_dataset(
         self, 
         split: str, 
-        batch_size: int=32, 
+        batch_size: int=32,
         shuffle: bool=False,
         split_type: str = "balanced"
         ) -> tf.data.Dataset:
@@ -235,6 +237,7 @@ class Dataset():
         ds = tf.data.experimental.make_csv_dataset(
             files,
             batch_size=batch_size,
+            num_epochs=self.epochs,
             shuffle=shuffle,
             shuffle_seed=self.seed,
             num_parallel_reads=tf.data.AUTOTUNE,

@@ -7,15 +7,16 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 import tensorflow as tf
+import numpy
 
 from metrics.der.diacritic_error_rate import DiacriticErrorRate
 from callbacks.ce_der.case_ending_der import CaseEndingDERCallback
 from callbacks.wer.word_error_rate import WordErrorRateCallback
 from helpers.datasets_helper.dataset import Dataset
 
-from util.vocab import DIAC_PAD_ID
-from util.data import make_dataset, to_training_triplet, materialize_validation_set
-from models import MODEL_BUILDERS
+from util.vocab import DIAC_PAD_ID, SPACE_DIAC_TOKEN, DIAC_VOCAB_LIST
+from util.data import make_dataset, to_training_triplet, materialize_validation_set, encode_text
+from models import MODEL_BUILDERS, decode_predictions
 
 
 def parse_args():
@@ -31,14 +32,11 @@ def parse_args():
 def main():
     args = parse_args()
 
-    """
-    THE PROBLEM MIGHT BE HERE. IDK
-    """
-    train_ds = tf.data.experimental.make_csv_dataset(
-        "datasets/Sadeed_Tashkeela/train.csv", 
-        batch_size=3).take(100000)
-    test_ds = tf.data.experimental.make_csv_dataset("datasets/Sadeed_Tashkeela/test.csv", batch_size=16)
-    
+    ds = Dataset("sadeed_tashkeal")
+
+    train_ds = ds.load_dataset("train", batch_size=64).take(500_000)
+    test_ds = ds.load_dataset("test", batch_size=64).take(50_000)
+
     train_ds_full = make_dataset(train_ds, prefetch=True)
     test_ds_full = make_dataset(test_ds, prefetch=True)
 
@@ -64,10 +62,12 @@ def main():
         metrics=[
             tf.keras.metrics.SparseCategoricalAccuracy(name="char_accuracy"),
             # THIS IS OUR METRIC, DER 
-            # DiacriticErrorRate(pad_id=DIAC_PAD_ID),
+            DiacriticErrorRate(pad_id=DIAC_PAD_ID),
         ],
         weighted_metrics=[],
     )
+
+    steps_per_epoch = 500_000 // args.epochs 
 
     history = model.fit(
         train_ds,
@@ -75,12 +75,12 @@ def main():
         epochs=args.epochs,
         callbacks=[
             # THOSE ARE OUR CALLBACKS WER AND CE-DER
-            #WordErrorRateCallback(val_data=(x_val, y_val)),
-            #CaseEndingDERCallback(val_data=(x_val, y_val, case_ending_mask_val)),
+            WordErrorRateCallback(val_data=(x_val, y_val), space_id=SPACE_DIAC_TOKEN, pad_id=DIAC_PAD_ID),
+            CaseEndingDERCallback(val_data=(x_val, y_val, case_ending_mask_val), pad_id=DIAC_PAD_ID),
             tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=2, restore_best_weights=True),
         ],
+        steps_per_epoch=steps_per_epoch
     )
-    return model, history
 
 
 if __name__ == "__main__":
