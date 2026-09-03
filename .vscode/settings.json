@@ -1,0 +1,10 @@
+
+{
+  "python-envs.defaultEnvManager": "ms-python.python:venv",
+  "python.analysis.extraPaths": [
+    "./src/helpers/datasets_helper",
+    "./src/metrics/der",
+    "./src/callbacks/wer",
+    "./src/model_development"
+  ]
+}
