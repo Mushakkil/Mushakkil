@@ -13,8 +13,8 @@ from typing import List, Sequence
 import tensorflow as tf
 import keras
 from keras import layers, models
-from label_config import NUM_REAL_CLASSES as NUM_CLASSES, CharVocab
-
+from label_config import NUM_CLASSES, CharVocab
+NUM_CLASSES = 15
 # ---------------------------------------------------------------------------
 # a. N-gram baseline
 # ---------------------------------------------------------------------------
@@ -97,7 +97,7 @@ def _build_recurrent_model(
         )(x)
 
     outputs = layers.TimeDistributed(
-        layers.Dense(num_classes, activation="softmax"), name="diacritic_output"
+    layers.Dense(NUM_CLASSES, activation="softmax"), name="diacritic_output"
     )(x)
 
     return models.Model(inputs=inputs, outputs=outputs)
@@ -111,14 +111,10 @@ def build_bigru_model(vocab_size: int, **kwargs) -> tf.keras.Model:
     return _build_recurrent_model(vocab_size, layers.GRU, **kwargs)
 
 
-def compile_model(
-    model: tf.keras.Model,
-    der_metric,
-    learning_rate: float = 1e-3,
-) -> tf.keras.Model:
+def compile_model(model: tf.keras.Model, learning_rate: float = 1e-3) -> tf.keras.Model:
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
         loss=tf.keras.losses.SparseCategoricalCrossentropy(),
-        weighted_metrics=["accuracy", der_metric],
+        weighted_metrics=["accuracy"],
     )
     return model

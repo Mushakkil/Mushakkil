@@ -31,6 +31,7 @@ KASRATAN = "\u064D"
 
 DIACRITIC_CHARS = frozenset({FATHA, DAMMA, KASRA, SHADDA, SUKUN, FATHATAN, DAMMATAN, KASRATAN})
 
+
 # The 8 marks pyarabic's araby.TASHKEEL recognizes (used by the EDA notebook
 # too) collapse into 15 classes once shadda+vowel combinations are merged
 # into single ids (a model with one softmax head can only output one class
@@ -57,10 +58,13 @@ CLASS_TO_ID = {c: i for i, c in enumerate(CLASS_LABELS)}
 NO_DIACRITIC_ID = CLASS_TO_ID[""]     # 0
 NUM_DIACRITIC_CLASSES = len(CLASS_LABELS)  # 15
 
-NA_ID = 15          # not an Arabic letter: space, punctuation, digit, newline, ...
-PAD_ID = 16         # batch padding only, never a real prediction target
-NUM_REAL_CLASSES = NA_ID + 1          # 16 (15 diacritic classes + NA)
-NUM_TOTAL_CLASSES = PAD_ID + 1        # 17 (used as the model's output width)
+CLASS_TO_ID = {c: i for i, c in enumerate(CLASS_LABELS)}
+NO_DIACRITIC_ID = CLASS_TO_ID[""]      # 0
+NUM_CLASSES = 15                       # 15 diacritic classes (0-14)
+NUM_DIACRITIC_CLASSES = 15
+PAD_ID = 0                             # Padding token ID mapped to 0 (ignored by mask/weights)
+IGNORE_ID = -100
+NA_ID = NO_DIACRITIC_ID  # 0
 
 # The 36 standard Arabic letters (incl. all hamza forms, teh marbuta, alef
 # maksura). Anything NOT in this set is treated as NA -- it structurally
@@ -164,7 +168,7 @@ def extract_chars_and_labels(
         else:
             # Not a letter -> NA, regardless of any (malformed) marks that
             # might follow it. Space/punctuation/digits can't be diacritized.
-            label_id = NA_ID
+            label_id = NO_DIACRITIC_ID
 
         chars.append(ch)
         label_ids.append(label_id)
@@ -193,3 +197,4 @@ class CharVocab:
 
     def __len__(self) -> int:
         return len(self.char_to_id) + 2  # +PAD +UNK
+    
