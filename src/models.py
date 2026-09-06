@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 
-from util.vocab import (
+from .util.vocab import (
     CHAR_LOOKUP, NUM_DIACRITIC_CLASSES, MAX_LEN, CHAR_PAD_ID,
     CHAR_VOCAB_LIST, DIAC_VOCAB_LIST, NONE_DIAC_TOKEN, SPACE_DIAC_TOKEN, DIAC_PAD_TOKEN,
 )

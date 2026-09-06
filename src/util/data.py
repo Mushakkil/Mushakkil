@@ -34,8 +34,8 @@ import re
 import numpy as np
 import tensorflow as tf
 
-from util.build_case_ending import build_case_ending_mask
-from util.vocab import (
+from .build_case_ending import build_case_ending_mask
+from .vocab import (
     CHAR_LOOKUP, DIAC_LOOKUP, DIACRITIC_MARKS, PAD_TOKEN,
     NONE_DIAC_TOKEN, SPACE_DIAC_TOKEN, DIAC_PAD_TOKEN, MAX_LEN,
 )
