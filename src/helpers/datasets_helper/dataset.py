@@ -2,6 +2,7 @@ import glob
 import random
 import json
 import os
+# import math
 
 import tensorflow as tf
 
@@ -43,12 +44,14 @@ class Dataset():
     def __init__(
         self, 
         name: str, 
-        test_frac: float=0.10, 
+        test_frac: float=0.10,
+        # epochs: int=1,
         seed: int=132,
         **kwargs
     ):
         self.name = name
         self.test_frac = test_frac
+        # self.epochs = epochs
         self.csv_kwargs = kwargs
         self.seed = seed
                 
@@ -100,7 +103,7 @@ class Dataset():
             return self.DATASET_REGISTRY[self.name]
 
         loaded_split = {}
-        if not purge_cache:
+        if purge_cache:
             loaded_split = _load_split()
 
         if split_type not in loaded_split:
@@ -197,11 +200,15 @@ class Dataset():
  
         elif self.name == "shamela":
             if split_type == "balanced":
-                train_files, test_files = self._get_split_cache("balanced")
+                files_dict = self._get_split_cache("balanced")
             elif split_type == "unbalanced":
-                train_files, test_files = self._get_split_cache("unbalanced")
+                files_dict = self._get_split_cache("unbalanced")
             else:
                 raise ValueError(f"Unknown split_type: {split_type!r}")
+
+            train_files = files_dict["train"]    
+            test_files = files_dict["test"] 
+
             files = train_files if split == "train" else test_files
  
         else:
@@ -209,10 +216,23 @@ class Dataset():
 
         return files
 
+
+    # ! Broken Code     
+    # @staticmethod
+    # def _count_csv_rows(files):
+    #     """
+    #     This is a fix for unknown cardinality
+
+    #     Counts data rows only
+    #     """
+    #     paths = [files] if isinstance(files, str) else list(files)
+    #     return sum(sum(1 for _ in open(p, encoding="utf-8")) - 1 for p in paths)
+
+
     def load_dataset(
         self, 
         split: str, 
-        batch_size: int=32, 
+        batch_size: int=32,
         shuffle: bool=False,
         split_type: str = "balanced"
         ) -> tf.data.Dataset:
@@ -235,12 +255,16 @@ class Dataset():
         ds = tf.data.experimental.make_csv_dataset(
             files,
             batch_size=batch_size,
+            num_epochs=1,
             shuffle=shuffle,
             shuffle_seed=self.seed,
             num_parallel_reads=tf.data.AUTOTUNE,
             **self.csv_kwargs,
         )
 
-        # prefetch elements from the input dataset ahead of the time to
-        # address performane issues with long loading time, even longer training.
-        return ds.prefetch(tf.data.AUTOTUNE)
+        # ! Adds huge layer of complexity 
+        # n_rows = self._count_csv_rows(files)
+        # n_batches = math.ceil(n_rows / batch_size)
+        # ds = ds.apply(tf.data.experimental.assert_cardinality(n_batches))
+
+        return ds
