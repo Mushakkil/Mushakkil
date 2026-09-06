@@ -7,20 +7,29 @@ vowels and other pronunciation. The work in this repository covers the data
 side of that objective — assembling large, diacritized Arabic corpora and
 processing them into aligned training pairs, where each record holds a
 diacritized sentence and the same sentence with its diacritics stripped
-(`DIACRRITIC` / `NON_DIACRRITIC`). These pairs are the supervision signal for
-the diacritization model.
+(`DIACRRITIC` / `NON_DIACRRITIC`).
+
+#### Prerequisites
+
+- **Python 3.13** (see Setup Enviroment above).
+- **Both submodules initialized** (see Submodules above).
+- **A JDK** — not just a JRE. Step 3 needs `javac` to compile
+  `ShamelaIndexExporter.java`, and step 4 needs `java` on `PATH`
+- **Disk space.** ~40 GB to hold the archive, the unpacked datasets, and the processed datasets
 
 ## Setup Enviroment
-
-> [!CAUTION]
-> you need uv to run this project. Refere to https://docs.astral.sh/uv/
 
 1. clone the project
 2. install dependecies:
 
 ```bash
 cd Mushakkil
+
+# with uv
 uv sync
+
+# with bare-metal pip
+pip install -r requirements.txt
 ```
 
 ### Submodules
@@ -57,55 +66,18 @@ locally, never committed.
 | `scripts/prepare_shamela.py`          | The Shamela digital library database dump      | `datasets/shamela/*.csv`, one CSV per book   |
 | `scripts/prepare_sadeed_tashkeela.py` | The `Sadeed_Tashkeela` dataset on Hugging Face | `datasets/Sadeed_Tashkeela/{train,test}.csv` |
 
-### Sadeed Tashkeela
+## Train / Hypertune
+you can start to train/hypertune the model from Mushakkil.ipynb
 
-`scripts/prepare_sadeed_tashkeela.py` loads the dataset's Parquet shards (three
-train shards, one test shard) with `datasets.load_dataset()` and writes each
-split to CSV:
+#### Furthrer Hypertuning
+check our models builders at src/models.py.
+There is three main models:
+- Baseline model (Conv1D)
+- Bidirectional/Single-Directional LSTM 
+- Bidirectional/Single-Directional GRU 
 
-```bash
-uv run python scripts/prepare_sadeed_tashkeela.py
-```
+##### Licenses
 
-### Shamela
-
-`scripts/prepare_shamela.py` turns the Shamela library dump into a plain-text
-Arabic corpus and then into the project's CSV dataset format. It runs six
-steps end to end:
-
-1. Download `shamela-database-1448.zip` from `dev.shamela.ws` into `datasets_archive/`.
-2. Unpack it into `datasets_archive/`.
-3. Compile the Java Lucene index exporter (`javac`).
-4. Extract the Lucene indices to CSV via that exporter.
-5. Convert the per-book CSVs to plain `.txt` (the `body` column, one passage per block).
-6. Run the dataset preparer over the text files to produce the final per-book CSVs.
-
-It then removes the intermediate `datasets_archive/Shamela/` tree. The
-downloaded archive is deliberately kept so the pipeline can be re-run without
-downloading again.
-
-#### Prerequisites
-
-- **Python 3.13** and `uv` (see Setup Enviroment above).
-- **Both submodules initialized** (see Submodules above).
-- **A JDK** — not just a JRE. Step 3 needs `javac` to compile
-  `ShamelaIndexExporter.java`, and step 4 needs `java` on `PATH`; the extractor
-  checks for it and aborts if it is missing.
-- **Disk space.** The archive is ~13.3 GB, and the extractor's own
-  prerequisite check refuses to run when the output path has less than 20 GB
-  free. Budget ~40 GB to hold the archive, the unpacked database, and the
-  extracted CSV/text intermediates at once.
-- **Network access** to `dev.shamela.ws`.
-
-#### Running
-
-Run from the repository root — step 6 writes its output to `datasets/shamela/`
-relative to the current working directory:
-
-```bash
-uv run python scripts/prepare_shamela.py
-```
-
-The script takes no arguments. It is re-runnable: the download is skipped when
-the archive is already present, unpacking skips files already on disk, and the
-dataset preparer skips books whose CSV already exists.
+- `This system could be trained on Sadeed_Tashkeela (aka. Misraj/Sadeed_Tashkeela on HF) by Zeina Aldallal (and others) Which has been released under GNU General Public License version 2.0 (GPLv2), OSI-Approved Open Source (for research purposes only)`
+- `Also it could be trained on Tashkeela corpus (T. Zerrouki, A. Balla, Tashkeela: Novel corpus of Arabic vocalized texts, data for auto-diacritization systems, Data in Brief (2017)) Which has been released under GNU General Public License version 2.0 (GPLv2), OSI-Approved Open Source`
+- `Also it could be trained on Shamela Library dump which is a free-to-use project`
