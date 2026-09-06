@@ -2,7 +2,7 @@ import glob
 import random
 import json
 import os
-import math
+# import math
 
 import tensorflow as tf
 
@@ -45,13 +45,13 @@ class Dataset():
         self, 
         name: str, 
         test_frac: float=0.10,
-        epochs: int=1,
+        # epochs: int=1,
         seed: int=132,
         **kwargs
     ):
         self.name = name
         self.test_frac = test_frac
-        self.epochs = epochs
+        # self.epochs = epochs
         self.csv_kwargs = kwargs
         self.seed = seed
                 
@@ -216,16 +216,17 @@ class Dataset():
 
         return files
 
-     
-    @staticmethod
-    def _count_csv_rows(files):
-        """
-        This is a fix for unknown cardinality
 
-        Counts data rows only
-        """
-        paths = [files] if isinstance(files, str) else list(files)
-        return sum(sum(1 for _ in open(p, encoding="utf-8")) - 1 for p in paths)
+    # ! Broken Code     
+    # @staticmethod
+    # def _count_csv_rows(files):
+    #     """
+    #     This is a fix for unknown cardinality
+
+    #     Counts data rows only
+    #     """
+    #     paths = [files] if isinstance(files, str) else list(files)
+    #     return sum(sum(1 for _ in open(p, encoding="utf-8")) - 1 for p in paths)
 
 
     def load_dataset(
@@ -254,17 +255,16 @@ class Dataset():
         ds = tf.data.experimental.make_csv_dataset(
             files,
             batch_size=batch_size,
-            num_epochs=self.epochs,
+            num_epochs=1,
             shuffle=shuffle,
             shuffle_seed=self.seed,
             num_parallel_reads=tf.data.AUTOTUNE,
             **self.csv_kwargs,
         )
 
-        n_rows = self._count_csv_rows(files)
-        n_batches = math.ceil(n_rows / batch_size)
-        ds = ds.apply(tf.data.experimental.assert_cardinality(n_batches))
+        # ! Adds huge layer of complexity 
+        # n_rows = self._count_csv_rows(files)
+        # n_batches = math.ceil(n_rows / batch_size)
+        # ds = ds.apply(tf.data.experimental.assert_cardinality(n_batches))
 
-        # prefetch elements from the input dataset ahead of the time to
-        # address performane issues with long loading time, even longer training.
-        return ds.prefetch(tf.data.AUTOTUNE)
+        return ds

@@ -149,27 +149,21 @@ def preprocess_csv_batch(column_dict):
     return char_ids, diac_ids, weights, case_ending_mask
 
 
-def make_dataset(raw_csv_dataset, cache=True, prefetch=True):
+def make_dataset(raw_csv_dataset, cache=False, cache_filename=None):
     """
     Returns 4-tuples: (char_ids, diac_ids, sample_weight, case_ending_mask).
-
-    cache=True caches AFTER preprocess_csv_batch, not before -- this is
-    the actual fix for the "reruns the Python parsing loop every epoch"
-    problem. Trade-off: this caches the fully parsed int tensors in
-    memory (or on disk if you pass make_dataset(..., cache='/path/file')-
-    style; see the note below), which costs more RAM than caching raw
-    strings did, but means the expensive py_function step only ever runs
-    ONCE per example, not once per example per epoch.
 
     If your dataset doesn't comfortably fit in memory, replace
     `ds.cache()` with `ds.cache(filename)` to spill to disk instead -- the
     parsing cost is still paid only once, you just trade RAM for disk I/O.
     """
     ds = raw_csv_dataset.map(preprocess_csv_batch, num_parallel_calls=tf.data.AUTOTUNE)
+    
     if cache:
-        ds = ds.cache()
-    if prefetch:
-        ds = ds.prefetch(tf.data.AUTOTUNE)
+        if cache_filename:
+            ds = ds.cache(cache_filename)
+        else:
+            ds = ds.cache()
     return ds
 
 
