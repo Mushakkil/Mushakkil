@@ -13,6 +13,9 @@ lib64/
 # Jupyter Notebook
 .ipynb_checkpoints
 
+# IDEs
+.vscode/
+.idea/
 
 # Environments
 .env
